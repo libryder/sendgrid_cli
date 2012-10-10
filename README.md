@@ -39,6 +39,11 @@ sendgrid delete <email>                :: Delete single recipient from blocked r
 ~/.sendgrid_cli.yaml
 ```
 
+####Todo
+
+* Expand endpoint functionality
+* Clean up executable
+
 ## Contributing
 
 1. Fork it
