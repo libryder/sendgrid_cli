@@ -1,5 +1,7 @@
 # SendgridCli
 
+[![Build Status](https://secure.travis-ci.org/libryder/sendgrid_cli.png)](http://travis-ci.org/libryder/sendgrid_cli)
+
 This is a basic implementation for a command line interface to the Sendgrid API. It is currently limited
 to the Spam Reports function. 
 
