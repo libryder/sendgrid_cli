@@ -32,6 +32,13 @@ sendgrid get [<email>]                 :: Get entire list or single blocked reci
 sendgrid delete <email>                :: Delete single recipient from blocked recipient list.
 ```
 
+####Note
+ ```config``` is required to be run before API will work. Config is stored in
+
+```
+~/.sendgrid_cli.yaml
+```
+
 ## Contributing
 
 1. Fork it
