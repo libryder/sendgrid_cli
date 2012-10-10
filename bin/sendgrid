@@ -3,57 +3,82 @@ require 'sendgrid_cli'
 require 'fileutils'
 require 'yaml'
 
-include SendgridCli
+class SendgridExec
+  include SendgridCli
 
-action = ARGV[0]
-email = ARGV[1]
-
-begin
-  config = YAML::load( File.open(File.expand_path('~/.sendgrid_cli.yaml' )))
-rescue Errno::ENOENT
-  FileUtils.touch(File.expand_path('~/.sendgrid_cli.yaml'))
-end
-
-config ||= {'user' => nil, 'pass' => nil}
-
-api = SpamReport.new(config['user'], config['pass'])
-
-case action
-when 'config'
-  build_configuration
-  puts "Configuration successful.\n"
-  exit
-when 'get'
-  api.get(email)
-when 'help'
-  api.help
-when 'delete'
-  if email
-    api.delete(email)
-  else
-    raise "Please provide an email address to delete."
+  def initialize
+    begin
+      @config = YAML::load( File.open(File.expand_path('~/.sendgrid_cli.yaml' )))
+    rescue Errno::ENOENT
+      FileUtils.touch(File.expand_path('~/.sendgrid_cli.yaml'))
+      @config = {'user' => nil, 'pass' => nil}
+    end
   end
-else
-  raise "Invalid argument: #{action}. Use 'help' for usage."
-end
+  
+  def build_config
+    case ARGV[1] 
+    when 'user'
+      user = ARGV[2]
+      pass ||= @config['pass']
+    when 'pass'
+      pass = ARGV[2]
+      user ||= @config['user']
+    else
+      raise "Invalid config option: '#{ARGV[2]}'. Try 'help' for usage."
+    end
 
-def build_config
-  case ARGV[1] 
-  when 'user'
-    user = ARGV[2]
-    pass ||= config['pass']
-  when 'pass'
-    pass = ARGV[2]
-    user ||= config['user']
-  else
-    raise "Invalid config option: '#{ARGV[2]}'. Try 'help' for usage."
+    File.open(File.expand_path('~/.sendgrid_cli.yaml'), "w") do |f|
+      f.write({'user' => user, 'pass' => pass}.to_yaml)
+    end
   end
 
-  File.open(File.expand_path('~/.sendgrid_cli.yaml'), "w") do |f|
-    f.write({'user' => user, 'pass' => pass}.to_yaml)
+  def run(action, email=nil)
+
+    if action == 'config'
+      build_config
+      puts "\nConfiguration successful.\n"
+      exit
+    end
+
+    api = SpamReport.new(@config['user'], @config['pass'])
+
+    case action
+    when 'get'
+      api.get(email)
+    when 'help'
+      help
+    when 'delete'
+      if email
+        api.delete(email)
+      else
+        raise "Please provide an email address to delete."
+      end
+    else
+      raise "Invalid argument: #{action}. Use 'help' for usage."
+    end
+  end
+
+  def print_results(result)
+    puts result
+    puts ''
+    puts "-----#{result.count} results------"
+  end
+
+  def help
+    puts "\nSendgrid spam reports utility. \n\nAllows you to manage and view your list of spam reports."
+
+    puts "\nUSAGE:\n"
+    
+    puts "\nconfig user <api_username>  :: Configure api username for gem use"
+    puts "config pass <api_secret>      :: Configure api password for gem use" 
+    puts "get [<email>]                 :: Get entire list or single blocked recipient."
+    puts "delete <email>                :: Delete single recipient from blocked recipient list.\n\n"
+    exit
   end
 end
 
-response = api.send(action, email)
+cli = SendgridExec.new
+response = cli.run(ARGV[0], ARGV[1])
+
 email_list = response.map { |result| result['email'] }
-api.print_results(email_list)
+cli.print_results(email_list)

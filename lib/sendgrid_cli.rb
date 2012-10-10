@@ -9,6 +9,9 @@ module SendgridCli
     def initialize(user, pass)
       @api_user = user
       @api_pass = pass
+      if @api_pass.nil? || @api_user.nil?
+        raise "Please configure gem before use. Try 'help' for usage."
+      end
     end
 
   public
@@ -20,28 +23,10 @@ module SendgridCli
       query_api('delete', email)
     end
 
-    def print_results(result)
-      puts result
-      puts ''
-      puts "-----#{result.count} results------"
-    end
-
-    def help
-      puts "\nSendgrid spam reports utility. \n\nAllows you to manage and view your list of spam reports."
-
-      puts "\nUSAGE:\n"
-      
-      puts "\nconfig user <api_username>  :: Configure api username for gem use"
-      puts "config pass <api_secret>      :: Configure api password for gem use" 
-      puts "get [<email>]                 :: Get entire list or single blocked recipient."
-      puts "delete <email>                :: Delete single recipient from blocked recipient list.\n\n"
-      exit
-    end
-
   private
     def query_api(action, email=nil)
       args = "&email=#{email}" unless email.nil?
-      send_grid_url = "https://sendgrid.com/api/spamreports.#{action}.json?api_user=#{API_USER}&api_key=#{API_KEY}#{args}"
+      send_grid_url = "https://sendgrid.com/api/spamreports.#{action}.json?api_user=#{@api_user}&api_key=#{@api_pass}#{args}"
       
       response = HTTParty.get(send_grid_url)
       JSON.parse(response.body)
