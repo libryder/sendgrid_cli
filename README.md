@@ -1,6 +1,7 @@
 # SendgridCli
 
-TODO: Write a gem description
+This is a basic implementation for a command line interface to the Sendgrid API. It is currently limited
+to the Spam Reports function. 
 
 ## Installation
 
@@ -18,7 +19,16 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Sendgrid spam reports utility. 
+
+Allows you to manage and view your list of spam reports.
+
+```
+sendgrid config user <api_username>    :: Configure api username for gem use
+sendgrid config pass <api_secret>      :: Configure api password for gem use
+sendgrid get [<email>]                 :: Get entire list or single blocked recipient.
+sendgrid delete <email>                :: Delete single recipient from blocked recipient list.
+```
 
 ## Contributing
 
