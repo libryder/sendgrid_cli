@@ -16,7 +16,7 @@ module SendgridCli
 
   public
     def get(email=nil)
-      email_list = query_api('get', email)
+      query_api('get', email)
     end
 
     def delete(email)
