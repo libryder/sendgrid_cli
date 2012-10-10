@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+require 'sendgrid_cli'
+require 'fileutils'
+require 'yaml'
+
+include SendgridCli
+
+action = ARGV[0]
+email = ARGV[1]
+
+begin
+  config = YAML::load( File.open(File.expand_path('~/.sendgrid_cli.yaml' )))
+rescue Errno::ENOENT
+  FileUtils.touch(File.expand_path('~/.sendgrid_cli.yaml'))
+end
+
+config ||= {'user' => nil, 'pass' => nil}
+
+api = SpamReport.new(config['user'], config['pass'])
+
+case action
+when 'config'
+  build_configuration
+  puts "Configuration successful.\n"
+  exit
+when 'get'
+  api.get(email)
+when 'help'
+  api.help
+when 'delete'
+  if email
+    api.delete(email)
+  else
+    raise "Please provide an email address to delete."
+  end
+else
+  raise "Invalid argument: #{action}. Use 'help' for usage."
+end
+
+def build_config
+  case ARGV[1] 
+  when 'user'
+    user = ARGV[2]
+    pass ||= config['pass']
+  when 'pass'
+    pass = ARGV[2]
+    user ||= config['user']
+  else
+    raise "Invalid config option: '#{ARGV[2]}'. Try 'help' for usage."
+  end
+
+  File.open(File.expand_path('~/.sendgrid_cli.yaml'), "w") do |f|
+    f.write({'user' => user, 'pass' => pass}.to_yaml)
+  end
+end
+
+response = api.send(action, email)
+email_list = response.map { |result| result['email'] }
+api.print_results(email_list)
